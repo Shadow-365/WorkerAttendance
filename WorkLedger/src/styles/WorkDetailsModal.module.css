@@ -1,0 +1,132 @@
+.overlay {
+  --accent: #4f46e5;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #94a3b8;
+
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.modal {
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--surface);
+  border-radius: 14px;
+  padding: 28px 24px;
+  box-sizing: border-box;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+}
+
+.modal h2 {
+  margin: 0 0 2px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+}
+
+.email {
+  margin: 0 0 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.inlineForm {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.inlineForm input {
+  flex: 1;
+  padding: 10px 12px;
+  background-color: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.inlineForm input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background-color: var(--surface);
+}
+
+.inlineForm button {
+  padding: 10px 14px;
+  background-color: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.inlineForm button:hover {
+  background-color: #6366f1;
+}
+
+.paidBadge {
+  margin: 16px 0 0;
+  padding: 10px;
+  text-align: center;
+  background-color: #ecfdf5;
+  color: #059669;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.closeButton {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px 0;
+  background-color: #f1f5f9;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: #e2e8f0;
+}
