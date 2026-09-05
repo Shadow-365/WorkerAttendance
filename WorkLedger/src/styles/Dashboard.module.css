@@ -176,38 +176,85 @@
 }
 
 .workerList {
-  list-style: none;
+  list-style-type: none;
   margin: 0;
   padding: 0;
 }
- 
-.workerList li {
+
+ .workerList li {
   display: flex;
   align-items: center;
+  justify-content: space-around;
+  gap: 12px;
   padding: 12px 14px;
   border-radius: 8px;
   font-size: 0.9rem;
   color: var(--text);
-  background-color: #f8fafc;
+  background-color: #a9ccf0;
   transition: background-color 0.15s ease;
 }
- 
+
 .workerList li:not(:last-child) {
   margin-bottom: 8px;
 }
- 
+
 .workerList li:hover {
   background-color: #eef2ff;
 }
- 
+
 .workerList li::before {
   content: "";
   width: 8px;
   height: 8px;
-  margin-right: 12px;
+  margin-right: 4px;
   border-radius: 50%;
   background-color: var(--accent);
   flex-shrink: 0;
+}
+
+.workerName {
+  flex: 1;
+  min-width: 0; /* allows text to truncate instead of pushing buttons off */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.detailsButton,
+.attendanceButton {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.detailsButton {
+  background-color: var(--accent);
+  color: #ffffff;
+  border: none;
+}
+
+.detailsButton:hover {
+  background-color: #6366f1;
+}
+
+.attendanceButton {
+  background-color: #ffffff;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.attendanceButton:hover {
+  background-color: #eef2ff;
 }
 
 /* ---------- Responsive ---------- */

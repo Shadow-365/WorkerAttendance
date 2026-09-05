@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { auth, db, rtdb } from './firebase/firebaseConfigs';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs } from 'firebase/firestore';
-import { ref, runTransaction, onValue } from 'firebase/database';
+import { ref, runTransaction, onValue, set } from 'firebase/database';
 
 import AddWorkForm from './AddWorkForm';
 import WorkDetailsModal from './WorkDetailsModal';
+import AttendanceModal from './AttendanceModal';
 
 import styles from './styles/Dashboard.module.css';
 
@@ -19,6 +20,8 @@ export default function Dashboard() {
     // const [selectedWork, setSelectedWork] = useState(null);
     const [selectedWorkId, setSelectedWorkId] = useState(null);
     const selectedWork = activeWorksList.find((w) => w.id === selectedWorkId) || null;
+    const [selectedAttendanceWorkId, setSelectedAttendanceWorkId] = useState(null);
+    const selectedAttendanceWork = activeWorksList.find((w) => w.id === selectedAttendanceWorkId) || null;
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
@@ -83,6 +86,24 @@ export default function Dashboard() {
         return sum + pending;
     }, 0);
 
+    const myActiveWorks = activeWorksList.filter((w) => w.workerEmail === user?.email);
+
+    const pendingConfirmations = myActiveWorks.flatMap((work) =>
+        Object.entries(work.attendance || {})
+            .filter(([date, record]) => record.confirmation === 'pending')
+            .map(([date, record]) => ({
+                workId: work.id,
+                workName: work.workName,
+                date,
+                status: record.status,
+            }))
+    );
+
+    function respondToAttendance(workId, date, decision) {
+        const confirmationRef = ref(rtdb, `activeWorks/${workId}/attendance/${date}/confirmation`);
+        set(confirmationRef, decision);
+    }
+
     return (
         <div className={styles.container}>
             <div className={styles.header}>
@@ -124,8 +145,14 @@ export default function Dashboard() {
                             {activeWorkerCount !== 0 ? (
                                 <ul className={styles.workerList}>
                                     {activeWorksList.map((work) => (
-                                        <li key={work.id} onClick={() => setSelectedWorkId(work.id)}>
+                                        <li key={work.id}>
                                             {work.workerName}
+                                            <button className={styles.detailsButton} onClick={() => setSelectedWorkId(work.id)}>
+                                                Payments & Details
+                                            </button>
+                                            <button className={styles.attendanceButton} onClick={() => setSelectedAttendanceWorkId(work.id)}>
+                                                Attendance
+                                            </button>
                                         </li>
                                     ))}
                                 </ul>
@@ -157,13 +184,36 @@ export default function Dashboard() {
 
                         <h3 className={styles.sectionHeading}>Your active work</h3>
                         <div className={styles.listCard}>
-                            <p className={styles.emptyState}>No active work assigned yet</p>
+                            {pendingConfirmations.length === 0 ? (
+                                <p className={styles.emptyState}>No pending attendance confirmations</p>
+                            ) : (
+                                <ul className={styles.workerList}>
+                                    {pendingConfirmations.map((item) => (
+                                        <li key={`${item.workId}-${item.date}`}>
+                                            <span className={styles.workerName}>
+                                                {item.workName} — {item.date} — marked <strong>{item.status}</strong>
+                                            </span>
+                                            <div className={styles.actionButtons}>
+                                                <button className={styles.detailsButton} onClick={() => respondToAttendance(item.workId, item.date, 'approved')}>
+                                                    Approve
+                                                </button>
+                                                <button className={styles.attendanceButton} onClick={() => respondToAttendance(item.workId, item.date, 'disputed')}>
+                                                    Dispute
+                                                </button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </div>
                     </>
                 )}
             </div>
             {selectedWork && (
                 <WorkDetailsModal work={selectedWork} onClose={() => setSelectedWorkId(null)} />
+            )}
+            {selectedAttendanceWork && (
+                <AttendanceModal work={selectedAttendanceWork} onClose={() => setSelectedAttendanceWorkId(null)} />
             )}
         </div>)
 }
