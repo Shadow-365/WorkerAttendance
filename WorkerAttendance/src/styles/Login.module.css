@@ -1,0 +1,172 @@
+/* Login.module.css
+   Matches the class names used in Login.jsx:
+   .parentContainer, .loginSignupContainer, .inputContainer
+   Light, minimalistic theme.
+*/
+
+.parentContainer {
+  --accent: #4f46e5;       /* indigo accent */
+  --accent-soft: #6366f1;
+  --surface: #ffffff;
+  --page-bg: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #94a3b8;
+
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 24px;
+  box-sizing: border-box;
+  background-color: var(--page-bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Tab switcher row: Login / Register */
+.loginSignupContainer {
+  display: flex;
+  width: 100%;
+  max-width: 380px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+}
+
+.loginSignupContainer > div {
+  flex: 1;
+  text-align: center;
+  padding: 14px 0;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.loginSignupContainer > div:hover {
+  color: var(--text);
+}
+
+/* Add this class conditionally in JSX to highlight the selected tab */
+.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background-color: #eef2ff;
+}
+
+/* Form card below the tabs */
+.inputContainer {
+  width: 100%;
+  max-width: 380px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 28px 24px 24px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.inputContainer h3 {
+  margin: 0 0 20px 0;
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.inputContainer input {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background-color: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.inputContainer input::placeholder {
+  color: var(--text-muted);
+}
+
+.inputContainer input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background-color: var(--surface);
+}
+
+.roleSelect {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background-color: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.roleSelect option {
+  color: var(--text);
+  background-color: var(--surface);
+  padding: 10px;
+}
+
+.roleSelect:focus {
+  outline: none;
+  border-color: var(--accent);
+  background-color: var(--surface);
+}
+
+/* Submit button sits directly under parentContainer, outside inputContainer */
+.parentContainer button {
+  width: 100%;
+  max-width: 380px;
+  padding: 13px 0;
+  margin-top: 16px;
+  background-color: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.parentContainer button:hover {
+  background-color: var(--accent-soft);
+}
+
+.parentContainer button:active {
+  transform: scale(0.98);
+}
+
+/* Responsive: tighten padding on small screens */
+@media (max-width: 420px) {
+  .loginSignupContainer,
+  .inputContainer,
+  .parentContainer button {
+    max-width: 100%;
+  }
+
+  .inputContainer {
+    padding: 22px 18px 18px;
+  }
+}

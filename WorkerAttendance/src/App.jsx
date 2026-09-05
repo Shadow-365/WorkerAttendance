@@ -3,17 +3,15 @@ import { db, auth } from './firebase/firebaseConfigs';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
-export default function App() {
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
+import Login from './Login';
 
-	function handleEmailChange(e) {
-		setEmail(e.target.value);
-	}
+export default function App() {
+	
 
 	return (
 		<div>
-			<h1>Worker Attendance</h1>
+			<h1>Workers Attendance</h1>
+			<Login />
 		</div>
 	)
 }
