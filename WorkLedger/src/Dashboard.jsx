@@ -30,7 +30,6 @@ export default function Dashboard() {
         const activeWorkerCountRef = ref(rtdb, 'activeWorkerCount');
         onValue(activeWorkerCountRef, async (snapshot) => {
             setActiveWorkerCount(snapshot.val() || 0);
-            let tempActiveWorkersNameList = [];
 
         });
         const totalWorkerCountRef = ref(rtdb, 'totalWorkerCount');
@@ -100,7 +99,7 @@ export default function Dashboard() {
     );
 
     function respondToAttendance(workId, date, decision) {
-        const confirmationRef = ref(rtdb, `activeWorks/${workId}/attendance/${date}/confirmation`);
+        const confirmationRef = ref(rtdb, `activeWorks/₹{workId}/attendance/₹{date}/confirmation`);
         set(confirmationRef, decision);
     }
 
@@ -116,7 +115,7 @@ export default function Dashboard() {
             <nav className={styles.nav}>
                 <ul className={styles.navList}>
                     <li><a href="#">Home</a></li>
-                    <li><a href="#">Activity Log</a></li>
+                    <li><a href="/activity-log">Activity Log</a></li>
                 </ul>
             </nav>
 
@@ -135,7 +134,7 @@ export default function Dashboard() {
                             </div>
                             <div className={styles.statCard}>
                                 <span className={styles.statLabel}>Pending Payments</span>
-                                <span className={styles.statValue}>${totalPendingAmount.toFixed(2)}</span>
+                                <span className={styles.statValue}>₹{totalPendingAmount.toFixed(2)}</span>
                             </div>
                         </div>
 
@@ -178,7 +177,7 @@ export default function Dashboard() {
                             </div>
                             <div className={styles.statCard}>
                                 <span className={styles.statLabel}>Pending Payments</span>
-                                <span className={styles.statValue}>$0.00</span>
+                                <span className={styles.statValue}>₹0.00</span>
                             </div>
                         </div>
 
@@ -189,7 +188,7 @@ export default function Dashboard() {
                             ) : (
                                 <ul className={styles.workerList}>
                                     {pendingConfirmations.map((item) => (
-                                        <li key={`${item.workId}-${item.date}`}>
+                                        <li key={`₹{item.workId}-₹{item.date}`}>
                                             <span className={styles.workerName}>
                                                 {item.workName} — {item.date} — marked <strong>{item.status}</strong>
                                             </span>

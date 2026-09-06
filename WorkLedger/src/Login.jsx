@@ -36,7 +36,7 @@ export default function Login() {
                     navigate('/dashboard');
                 })
                 .catch((error) => {
-                    alert(`Login error: ${error.message}`);
+                    alert(`Login error: ₹{error.message}`);
                 });
         } else {
             if (password !== confirmPassword) {
@@ -72,7 +72,7 @@ export default function Login() {
                     navigate('/dashboard');
                 })
                 .catch((error) => {
-                    alert(`Registration error: ${error.message}`);
+                    alert(`Registration error: ₹{error.message}`);
                 });
         }
     }

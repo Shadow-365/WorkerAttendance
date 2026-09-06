@@ -1,0 +1,128 @@
+/* ActivityLog.module.css — light, minimalistic theme, matches Dashboard/Login/Modals */
+
+.container {
+  --accent: #4f46e5;
+  --surface: #ffffff;
+  --page-bg: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #94a3b8;
+
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 32px 24px 60px;
+  background-color: var(--page-bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+}
+
+.header {
+  max-width: 700px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.backLink {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.list {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.dot {
+  margin-top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* Color-code the dot by action type for quick scanning */
+.dotCompleted {
+  background-color: #22c55e;
+}
+
+.dotOvertime {
+  background-color: #f59e0b;
+}
+
+.dotPayment {
+  background-color: #4f46e5;
+}
+
+.entryBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.action {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.message {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.timestamp {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.emptyState {
+  max-width: 700px;
+  margin: 40px auto;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 24px 16px 40px;
+  }
+
+  .entry {
+    padding: 12px 14px;
+  }
+}

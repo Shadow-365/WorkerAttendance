@@ -13,12 +13,12 @@ export default function AddWorkForm({ setAddWorkFormVisible }) {
     const [workEndDate, setWorkEndDate] = useState('');
     const [rate, setRate] = useState("");
     const [paymentType, setPaymentType] = useState('daily');
-    const [advancedPayment, setAdvancedPayment] = useState(""); 
+    const [advancedPayment, setAdvancedPayment] = useState("");
 
     async function handleSubmit(e) {
         e.preventDefault();
 
-        
+
         const usersQuery = query(collection(db, 'users'), where('email', '==', workerEmail));
         const querySnapshot = await getDocs(usersQuery);
 
@@ -39,14 +39,23 @@ export default function AddWorkForm({ setAddWorkFormVisible }) {
                 rate,
                 paymentType,
                 createdAt: Date.now(),
-                workStartDate,        
-                workEndDate,      
+                workStartDate,
+                workEndDate,
                 description: workDescription,
                 advancePay: advancedPayment,
             });
 
             const activeWorkerCountRef = ref(rtdb, 'activeWorkerCount');
             await runTransaction(activeWorkerCountRef, (currentValue) => (currentValue || 0) + 1);
+
+            const activityLogRef = ref(rtdb, 'activityLog');
+            await push(activityLogRef, {
+                action: "Added new work",
+                workerName: workerName,
+                message: `Added work "${workName}" for worker "${workerName}"`,
+                timestamp: Date.now(),
+            });
+
         } catch (error) {
             console.error('Failed to add work:', error);
             alert('Something went wrong while adding the work.');

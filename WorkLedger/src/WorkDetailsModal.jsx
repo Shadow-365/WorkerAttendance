@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ref, runTransaction } from 'firebase/database';
+import { ref, runTransaction, push } from 'firebase/database';
 import { rtdb } from './firebase/firebaseConfigs';
 import styles from './styles/WorkDetailsModal.module.css';
 
@@ -19,14 +19,40 @@ export default function WorkDetailsModal({ work, onClose }) {
     const pending = totalOwed - alreadyPaid;
     const isFullyPaid = pending <= 0;
 
+    async function logActivity(action, message) {
+        const activityLogRef = ref(rtdb, 'activityLog');
+        await push(activityLogRef, {
+            action,
+            workerName: work.workerName,
+            message,
+            timestamp: Date.now(),
+        });
+    }
+
     async function handleAddPayment(e) {
         e.preventDefault();
         const amount = parseFloat(paymentInput);
         if (!amount || amount <= 0) return;
 
         const paymentsRef = ref(rtdb, `activeWorks/${work.id}/paymentsMade`);
-        await runTransaction(paymentsRef, (current) => (current || 0) + amount);
+        const result = await runTransaction(paymentsRef, (current) => (current || 0) + amount);
         setPaymentInput('');
+
+        // Check whether this payment brought the total owed to fully paid.
+        const newPaymentsMade = result.snapshot.val() || 0;
+        const newAlreadyPaid = advancePay + newPaymentsMade;
+
+        if (newAlreadyPaid >= totalOwed) {
+            await logActivity(
+                'Payment completed',
+                `Full payment completed for "${work.workName}" — ${work.workerName}`
+            );
+        } else {
+            await logActivity(
+                'Payment recorded',
+                `Recorded payment of ₹${amount.toFixed(2)} for "${work.workName}" — ${work.workerName}`
+            );
+        }
     }
 
     async function handleAddOvertime(e) {
@@ -37,6 +63,11 @@ export default function WorkDetailsModal({ work, onClose }) {
         const overtimeRef = ref(rtdb, `activeWorks/${work.id}/overtimePay`);
         await runTransaction(overtimeRef, (current) => (current || 0) + amount);
         setOvertimeInput('');
+
+        await logActivity(
+            'Overtime added',
+            `Added ₹${amount.toFixed(2)} overtime for "${work.workName}" — ${work.workerName}`
+        );
     }
 
     return (
@@ -51,24 +82,24 @@ export default function WorkDetailsModal({ work, onClose }) {
                 </div>
                 <div className={styles.row}>
                     <span>Rate ({work.paymentType})</span>
-                    <span>${rate.toFixed(2)}</span>
+                    <span>₹{rate.toFixed(2)}</span>
                 </div>
                 <div className={styles.row}>
                     <span>Overtime pay</span>
-                    <span>+${overtimePay.toFixed(2)}</span>
+                    <span>+₹{overtimePay.toFixed(2)}</span>
                 </div>
                 <div className={styles.row}>
                     <span>Advance paid</span>
-                    <span>-${advancePay.toFixed(2)}</span>
+                    <span>-₹{advancePay.toFixed(2)}</span>
                 </div>
                 <div className={styles.row}>
                     <span>Payments made</span>
-                    <span>-${paymentsMade.toFixed(2)}</span>
+                    <span>-₹{paymentsMade.toFixed(2)}</span>
                 </div>
 
                 <div className={styles.totalRow}>
                     <span>{isFullyPaid ? 'Fully paid' : 'Pending amount'}</span>
-                    <span>${Math.max(pending, 0).toFixed(2)}</span>
+                    <span>₹{Math.max(pending, 0).toFixed(2)}</span>
                 </div>
 
                 {isFullyPaid ? (
