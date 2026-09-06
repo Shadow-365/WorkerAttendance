@@ -23,7 +23,7 @@ export default function AttendanceModal({ work, onClose }) {
 
     // Live-listen to this work's attendance so status/confirmation updates instantly.
     useEffect(() => {
-        const attendanceRef = ref(rtdb, `activeWorks/₹{work.id}/attendance`);
+        const attendanceRef = ref(rtdb, `activeWorks/${work.id}/attendance`);
         const unsubscribe = onValue(attendanceRef, (snapshot) => {
             setAttendanceData(snapshot.val() || {});
         });
@@ -31,7 +31,7 @@ export default function AttendanceModal({ work, onClose }) {
     }, [work.id]);
 
     function markAttendance(date, status) {
-        const dateRef = ref(rtdb, `activeWorks/₹{work.id}/attendance/₹{date}`);
+        const dateRef = ref(rtdb, `activeWorks/${work.id}/attendance/${date}`);
         set(dateRef, {
             status,               
             confirmation: 'pending',

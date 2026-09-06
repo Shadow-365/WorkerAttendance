@@ -257,6 +257,29 @@
   background-color: #eef2ff;
 }
 
+.completeButton {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #dcfce7;
+  color: #16a34a;
+  border: 1px solid #22c55e;
+  transition: background-color 0.2s ease;
+}
+
+.completeButton:hover {
+  background-color: #bbf7d0;
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
   .container {

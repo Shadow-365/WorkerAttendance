@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { auth, db, rtdb } from './firebase/firebaseConfigs';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs } from 'firebase/firestore';
-import { ref, runTransaction, onValue, set } from 'firebase/database';
+import { ref, runTransaction, onValue, set, remove, push } from 'firebase/database';
 
 import AddWorkForm from './AddWorkForm';
 import WorkDetailsModal from './WorkDetailsModal';
 import AttendanceModal from './AttendanceModal';
 
 import styles from './styles/Dashboard.module.css';
+import { calculatePending } from './utils/paymentCalculations';
 
 export default function Dashboard() {
     const [user, setUser] = useState(null);
@@ -17,11 +18,11 @@ export default function Dashboard() {
     const [activeWorkerCount, setActiveWorkerCount] = useState(0);
     const [totalWorkerCount, setTotalWorkerCount] = useState(0);
     const [activeWorksList, setActiveWorksList] = useState([]); // This will hold the list of active workers
-    // const [selectedWork, setSelectedWork] = useState(null);
     const [selectedWorkId, setSelectedWorkId] = useState(null);
     const selectedWork = activeWorksList.find((w) => w.id === selectedWorkId) || null;
     const [selectedAttendanceWorkId, setSelectedAttendanceWorkId] = useState(null);
     const selectedAttendanceWork = activeWorksList.find((w) => w.id === selectedAttendanceWorkId) || null;
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
@@ -30,8 +31,8 @@ export default function Dashboard() {
         const activeWorkerCountRef = ref(rtdb, 'activeWorkerCount');
         onValue(activeWorkerCountRef, async (snapshot) => {
             setActiveWorkerCount(snapshot.val() || 0);
-
         });
+
         const totalWorkerCountRef = ref(rtdb, 'totalWorkerCount');
         onValue(totalWorkerCountRef, (snapshot) => {
             setTotalWorkerCount(snapshot.val() || 0);
@@ -65,27 +66,29 @@ export default function Dashboard() {
         }
     }, [user]);
 
-
     function showAddWorkForm() {
-        // This function will be used to show a form for adding new work.
         setAddWorkFormVisible(true);
-
     }
 
-    const totalPendingAmount = activeWorksList.reduce((sum, work) => {
-        const rate = Number(work.rate) || 0;
-        const advancePay = Number(work.advancePay) || 0;
-        const overtimePay = Number(work.overtimePay) || 0;
-        const paymentsMade = Number(work.paymentsMade) || 0;
-
-        const totalOwed = rate + overtimePay;
-        const alreadyPaid = advancePay + paymentsMade;
-        const pending = Math.max(totalOwed - alreadyPaid, 0);
-
-        return sum + pending;
-    }, 0);
+    // Employer's total pending across all workers.
+    const totalPendingAmount = activeWorksList.reduce(
+        (sum, work) => sum + calculatePending(work).pending,
+        0
+    );
 
     const myActiveWorks = activeWorksList.filter((w) => w.workerEmail === user?.email);
+
+    // This worker's own pending amount across their assigned works.
+    const myPendingAmount = myActiveWorks.reduce(
+        (sum, work) => sum + calculatePending(work).pending,
+        0
+    );
+
+    // This worker's total earnings so far (advance + payments actually received).
+    const myEarnings = myActiveWorks.reduce(
+        (sum, work) => sum + calculatePending(work).alreadyPaid,
+        0
+    );
 
     const pendingConfirmations = myActiveWorks.flatMap((work) =>
         Object.entries(work.attendance || {})
@@ -98,9 +101,40 @@ export default function Dashboard() {
             }))
     );
 
+    const paymentHistory = myActiveWorks
+        .flatMap((work) =>
+            Object.entries(work.paymentHistory || {}).map(([id, record]) => ({
+                id,
+                workName: work.workName,
+                amount: record.amount,
+                timestamp: record.timestamp,
+            }))
+        )
+        .sort((a, b) => b.timestamp - a.timestamp);
+
     function respondToAttendance(workId, date, decision) {
-        const confirmationRef = ref(rtdb, `activeWorks/₹{workId}/attendance/₹{date}/confirmation`);
+        const confirmationRef = ref(rtdb, `activeWorks/${workId}/attendance/${date}/confirmation`);
         set(confirmationRef, decision);
+    }
+
+    async function handleCompleteWork(work) {
+        try {
+            await remove(ref(rtdb, `activeWorks/${work.id}`));
+
+            const activeWorkerCountRef = ref(rtdb, 'activeWorkerCount');
+            await runTransaction(activeWorkerCountRef, (current) => Math.max((current || 0) - 1, 0));
+
+            const activityLogRef = ref(rtdb, 'activityLog');
+            await push(activityLogRef, {
+                action: 'Work completed',
+                workerName: work.workerName,
+                message: `Marked work "${work.workName}" complete for ${work.workerName}`,
+                timestamp: Date.now(),
+            });
+        } catch (error) {
+            console.error('Failed to mark work complete:', error);
+            alert('Something went wrong while completing the work.');
+        }
     }
 
     return (
@@ -140,7 +174,6 @@ export default function Dashboard() {
 
                         <h3 className={styles.sectionHeading}>List of currently active workers</h3>
                         <div className={styles.listCard}>
-                            {/* <p className={styles.emptyState}>No active workers yet</p> */}
                             {activeWorkerCount !== 0 ? (
                                 <ul className={styles.workerList}>
                                     {activeWorksList.map((work) => (
@@ -152,6 +185,9 @@ export default function Dashboard() {
                                             <button className={styles.attendanceButton} onClick={() => setSelectedAttendanceWorkId(work.id)}>
                                                 Attendance
                                             </button>
+                                            <button className={styles.completeButton} onClick={() => handleCompleteWork(work)}>
+                                                Mark Complete
+                                            </button>
                                         </li>
                                     ))}
                                 </ul>
@@ -160,35 +196,31 @@ export default function Dashboard() {
                             )}
                         </div>
 
-                        <button className={styles.primaryButton}
-                            onClick={showAddWorkForm}
-                        >Add new work</button>
+                        <button className={styles.primaryButton} onClick={showAddWorkForm}>
+                            Add new work
+                        </button>
                     </>
                 ) : (
                     <>
                         <div className={styles.statsGrid}>
                             <div className={styles.statCard}>
-                                <span className={styles.statLabel}>Workers</span>
-                                <span className={styles.statValue}>0</span>
-                            </div>
-                            <div className={styles.statCard}>
-                                <span className={styles.statLabel}>Active works</span>
-                                <span className={styles.statValue}>0</span>
+                                <span className={styles.statLabel}>Earnings</span>
+                                <span className={styles.statValue}>₹{myEarnings.toFixed(2)}</span>
                             </div>
                             <div className={styles.statCard}>
                                 <span className={styles.statLabel}>Pending Payments</span>
-                                <span className={styles.statValue}>₹0.00</span>
+                                <span className={styles.statValue}>₹{myPendingAmount.toFixed(2)}</span>
                             </div>
                         </div>
 
-                        <h3 className={styles.sectionHeading}>Your active work</h3>
+                        <h3 className={styles.sectionHeading}>Pending Attendance Confirmations</h3>
                         <div className={styles.listCard}>
                             {pendingConfirmations.length === 0 ? (
                                 <p className={styles.emptyState}>No pending attendance confirmations</p>
                             ) : (
                                 <ul className={styles.workerList}>
                                     {pendingConfirmations.map((item) => (
-                                        <li key={`₹{item.workId}-₹{item.date}`}>
+                                        <li key={`${item.workId}-${item.date}`}>
                                             <span className={styles.workerName}>
                                                 {item.workName} — {item.date} — marked <strong>{item.status}</strong>
                                             </span>
@@ -205,6 +237,26 @@ export default function Dashboard() {
                                 </ul>
                             )}
                         </div>
+
+                        <h3 className={styles.sectionHeading}>Your Payment History</h3>
+                        <div className={styles.listCard}>
+                            {paymentHistory.length === 0 ? (
+                                <p className={styles.emptyState}>No payments recorded yet</p>
+                            ) : (
+                                <ul className={styles.workerList}>
+                                    {paymentHistory.map((item) => (
+                                        <li key={item.id}>
+                                            <span className={styles.workerName}>
+                                                {item.workName} — ₹{Number(item.amount).toFixed(2)}
+                                            </span>
+                                            <span className={styles.timestamp}>
+                                                {new Date(item.timestamp).toLocaleDateString()}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </>
                 )}
             </div>
@@ -214,5 +266,6 @@ export default function Dashboard() {
             {selectedAttendanceWork && (
                 <AttendanceModal work={selectedAttendanceWork} onClose={() => setSelectedAttendanceWorkId(null)} />
             )}
-        </div>)
+        </div>
+    );
 }

@@ -30,30 +30,31 @@ export default function WorkDetailsModal({ work, onClose }) {
     }
 
     async function handleAddPayment(e) {
-        e.preventDefault();
-        const amount = parseFloat(paymentInput);
-        if (!amount || amount <= 0) return;
+    e.preventDefault();
+    const amount = parseFloat(paymentInput);
+    if (!amount || amount <= 0) return;
 
-        const paymentsRef = ref(rtdb, `activeWorks/${work.id}/paymentsMade`);
-        const result = await runTransaction(paymentsRef, (current) => (current || 0) + amount);
-        setPaymentInput('');
+    const paymentsRef = ref(rtdb, `activeWorks/${work.id}/paymentsMade`);
+    const result = await runTransaction(paymentsRef, (current) => (current || 0) + amount);
+    setPaymentInput('');
 
-        // Check whether this payment brought the total owed to fully paid.
-        const newPaymentsMade = result.snapshot.val() || 0;
-        const newAlreadyPaid = advancePay + newPaymentsMade;
+    // Record this payment as its own entry so the worker can see a full history, not just a running total.
+    const historyRef = ref(rtdb, `activeWorks/${work.id}/paymentHistory`);
+    await push(historyRef, {
+        amount,
+        workName: work.workName,
+        timestamp: Date.now(),
+    });
 
-        if (newAlreadyPaid >= totalOwed) {
-            await logActivity(
-                'Payment completed',
-                `Full payment completed for "${work.workName}" — ${work.workerName}`
-            );
-        } else {
-            await logActivity(
-                'Payment recorded',
-                `Recorded payment of ₹${amount.toFixed(2)} for "${work.workName}" — ${work.workerName}`
-            );
-        }
+    const newPaymentsMade = result.snapshot.val() || 0;
+    const newAlreadyPaid = advancePay + newPaymentsMade;
+
+    if (newAlreadyPaid >= totalOwed) {
+        await logActivity('Payment completed', `Full payment completed for "${work.workName}" — ${work.workerName}`);
+    } else {
+        await logActivity('Payment recorded', `Recorded payment of ₹${amount.toFixed(2)} for "${work.workName}" — ${work.workerName}`);
     }
+}
 
     async function handleAddOvertime(e) {
         e.preventDefault();
